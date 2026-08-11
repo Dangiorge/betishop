@@ -1,0 +1,254 @@
+// ==========================================================
+// Shop Management System - Prisma Schema
+// Multi-tenant (shared DB, tenantId on every row)
+// DB: PostgreSQL (Supabase)
+// ==========================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------
+// Tenancy & Auth
+// -----------------------------
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique // used in QR public URL: /s/[slug]/stock
+  createdAt DateTime @default(now())
+
+  users          User[]
+  categories     Category[]
+  products       Product[]
+  variants       Variant[]
+  stockMovements StockMovement[]
+  sales          Sale[]
+  expenses       Expense[]
+  closingPeriods ClosingPeriod[]
+  stockCounts    StockCount[]
+}
+
+enum Role {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  EMPLOYEE
+}
+model User {
+  id            String    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  name          String
+  email         String    @unique
+  hashedPassword String?
+  role          Role      @default(EMPLOYEE)
+  createdAt     DateTime  @default(now())
+
+  // Employee-specific fields (null for OWNER)
+  baseSalary      Decimal? @db.Decimal(12, 2)
+  commissionRate  Decimal? @db.Decimal(5, 2) // percentage, e.g. 5.00 = 5%
+
+  stockMovements StockMovement[]
+  sales          Sale[]
+  stockCounts    StockCount[]
+
+  @@index([tenantId])
+}
+
+// -----------------------------
+// Catalog
+// -----------------------------
+
+enum ProductType {
+  SHOE
+  BAG
+  OTHER
+}
+
+model Category {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  name     String
+
+  products Product[]
+
+  @@index([tenantId])
+  @@unique([tenantId, name])
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  type        ProductType
+  name        String      // e.g. "Adidas Runner"
+  description String?
+  imageUrl    String?     // Cloudinary URL
+  createdAt   DateTime    @default(now())
+
+  variants Variant[]
+
+  @@index([tenantId])
+  @@index([categoryId])
+}
+
+// A specific sellable version of a product (e.g. Gray / Size 42)
+model Variant {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  sku         String?  // optional internal code
+  color       String?
+  size        String?
+  costPrice   Decimal  @db.Decimal(12, 2)
+  sellPrice   Decimal  @db.Decimal(12, 2)
+  stockQty    Int      @default(0) // running balance, kept in sync by StockMovement
+  createdAt   DateTime @default(now())
+
+  stockMovements StockMovement[]
+  sales          Sale[]
+  stockCounts    StockCount[]
+
+  @@index([tenantId])
+  @@index([productId])
+  @@unique([tenantId, sku])
+}
+
+// -----------------------------
+// Stock movement log (simple in/out ledger, not GRN)
+// -----------------------------
+
+enum MovementType {
+  RESTOCK
+  SALE
+  ADJUSTMENT
+  COUNT_CORRECTION
+}
+
+model StockMovement {
+  id         String       @id @default(cuid())
+  tenantId   String
+  tenant     Tenant       @relation(fields: [tenantId], references: [id])
+  variantId  String
+  variant    Variant      @relation(fields: [variantId], references: [id])
+  type       MovementType
+  qtyChange  Int          // positive for restock, negative for sale/adjustment out
+  employeeId String?
+  employee   User?        @relation(fields: [employeeId], references: [id])
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  @@index([tenantId])
+  @@index([variantId])
+}
+
+// -----------------------------
+// Sales (each sale = one stock-out + revenue record)
+// -----------------------------
+
+model Sale {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  variantId     String
+  variant       Variant  @relation(fields: [variantId], references: [id])
+  employeeId    String
+  employee      User     @relation(fields: [employeeId], references: [id])
+  qty           Int
+  priceAtSale   Decimal  @db.Decimal(12, 2) // per unit, snapshot at time of sale
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([employeeId])
+  @@index([createdAt])
+}
+
+// -----------------------------
+// Expenses
+// -----------------------------
+
+enum ExpenseCategory {
+  TRANSPORT
+  RENT
+  SALARY
+  OTHER
+}
+
+model Expense {
+  id       String          @id @default(cuid())
+  tenantId String
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  category ExpenseCategory
+  amount   Decimal         @db.Decimal(12, 2)
+  date     DateTime
+  note     String?
+
+  @@index([tenantId])
+  @@index([date])
+}
+
+// -----------------------------
+// Monthly Closing (owner picks a date range)
+// -----------------------------
+
+model ClosingPeriod {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id])
+  startDate        DateTime
+  endDate          DateTime
+  totalSales       Decimal  @db.Decimal(12, 2)
+  totalExpenses    Decimal  @db.Decimal(12, 2)
+  totalCommissions Decimal  @db.Decimal(12, 2)
+  netResult        Decimal  @db.Decimal(12, 2)
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// -----------------------------
+// Stock counting / reconciliation
+// -----------------------------
+
+model StockCount {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  variantId   String
+  variant     Variant  @relation(fields: [variantId], references: [id])
+  systemQty   Int      // stockQty at time of count
+  countedQty  Int      // physically counted
+  variance    Int      // countedQty - systemQty
+  countedById String
+  countedBy   User     @relation(fields: [countedById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([variantId])
+}
+
+enum SignupStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model SignupRequest {
+  id             String       @id @default(cuid())
+  businessName   String
+  ownerName      String
+  email          String       @unique
+  hashedPassword String
+  status         SignupStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  reviewedAt     DateTime?
+}

@@ -9,14 +9,21 @@ import Textarea from "@/components/ui/textarea";
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
 
+const EMPTY_FORM = {
+  name: "",
+  categoryId: "",
+  type: "SHOE",
+  description: "",
+  brand: "",
+  gender: "",
+  material: "",
+  countryOfOrigin: "",
+  tags: "",
+  imageUrl: "",
+};
+
 export default function ProductForm({ categories }) {
-  const [form, setForm] = useState({
-    name: "",
-    categoryId: "",
-    type: "SHOE",
-    description: "",
-    imageUrl: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,13 +52,7 @@ export default function ProductForm({ categories }) {
       return;
     }
 
-    setForm({
-      name: "",
-      categoryId: "",
-      type: "SHOE",
-      description: "",
-      imageUrl: "",
-    });
+    setForm(EMPTY_FORM);
     setOpen(false);
     router.refresh();
   }
@@ -76,6 +77,7 @@ export default function ProductForm({ categories }) {
               onChange={handleChange}
               required
             />
+
             <div className="grid grid-cols-2 gap-3">
               <Select
                 name="categoryId"
@@ -85,7 +87,7 @@ export default function ProductForm({ categories }) {
                 <option value="">Select category</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.parentId ? `— ${c.name}` : c.name}
                   </option>
                 ))}
               </Select>
@@ -95,6 +97,45 @@ export default function ProductForm({ categories }) {
                 <option value="OTHER">Other</option>
               </Select>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                name="brand"
+                placeholder="Brand (e.g. Adidas)"
+                value={form.brand}
+                onChange={handleChange}
+              />
+              <Select name="gender" value={form.gender} onChange={handleChange}>
+                <option value="">Gender / audience</option>
+                <option value="MEN">Men</option>
+                <option value="WOMEN">Women</option>
+                <option value="UNISEX">Unisex</option>
+                <option value="KIDS">Kids</option>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                name="material"
+                placeholder="Material (e.g. Genuine leather)"
+                value={form.material}
+                onChange={handleChange}
+              />
+              <Input
+                name="countryOfOrigin"
+                placeholder="Country of origin"
+                value={form.countryOfOrigin}
+                onChange={handleChange}
+              />
+            </div>
+
+            <Input
+              name="tags"
+              placeholder="Tags, comma separated (e.g. running, summer)"
+              value={form.tags}
+              onChange={handleChange}
+            />
+
             <Textarea
               name="description"
               placeholder="Description (optional)"

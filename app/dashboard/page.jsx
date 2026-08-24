@@ -5,10 +5,13 @@ import Card from "@/components/ui/card";
 export default async function DashboardPage() {
   const { db, session } = await getTenantDb();
 
-  const [productCount, lowStockCount, salesThisMonth, expensesThisMonth] =
+  const [productCount, stockRows, salesThisMonth, expensesThisMonth] =
     await Promise.all([
       db.product.count(),
-      db.variant.count({ where: { stockQty: { lte: 3 } } }),
+      db.storeStock.groupBy({
+        by: ["variantId"],
+        _sum: { qty: true },
+      }),
       db.sale.aggregate({
         _sum: { qty: true },
         where: { createdAt: { gte: startOfMonth() } },
@@ -18,6 +21,8 @@ export default async function DashboardPage() {
         where: { date: { gte: startOfMonth() } },
       }),
     ]);
+
+  const lowStockCount = stockRows.filter((r) => (r._sum.qty ?? 0) <= 3).length;
 
   return (
     <div>
@@ -29,7 +34,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Products" value={productCount} />
         <StatCard
-          label="Low stock items (≤3)"
+          label="Low stock items (≤3, total across stores)"
           value={lowStockCount}
           warn={lowStockCount > 0}
         />

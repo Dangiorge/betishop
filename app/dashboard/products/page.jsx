@@ -9,7 +9,7 @@ export default async function ProductsPage() {
 
   const [products, categories] = await Promise.all([
     db.product.findMany({
-      include: { category: true, variants: true },
+      include: { category: true, variants: { include: { storeStocks: true } } },
       orderBy: { createdAt: "desc" },
     }),
     db.category.findMany({ orderBy: { name: "asc" } }),
@@ -32,7 +32,10 @@ export default async function ProductsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {products.map((p) => {
-          const totalStock = p.variants.reduce((sum, v) => sum + v.stockQty, 0);
+          const totalStock = p.variants.reduce(
+            (sum, v) => sum + v.storeStocks.reduce((s, ss) => s + ss.qty, 0),
+            0,
+          );
           return (
             <Link key={p.id} href={`/dashboard/products/${p.id}`}>
               <Card className="p-4 hover:shadow-md transition-shadow flex gap-3">

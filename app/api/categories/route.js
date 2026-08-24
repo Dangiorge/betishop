@@ -4,7 +4,10 @@ import { getTenantDb } from "@/lib/tenant-db";
 export async function GET() {
   try {
     const { db } = await getTenantDb();
-    const categories = await db.category.findMany({ orderBy: { name: "asc" } });
+    const categories = await db.category.findMany({
+      include: { _count: { select: { products: true, children: true } } },
+      orderBy: { name: "asc" },
+    });
     return NextResponse.json(categories);
   } catch (e) {
     if (e.message === "UNAUTHENTICATED") {
@@ -28,12 +31,25 @@ export async function POST(req) {
       );
     }
 
-    const { name } = await req.json();
+    const { name, parentId } = await req.json();
     if (!name?.trim()) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const category = await db.category.create({ data: { name: name.trim() } });
+    if (parentId) {
+      const parent = await db.category.findUnique({ where: { id: parentId } });
+      if (!parent) {
+        return NextResponse.json(
+          { error: "Parent category not found" },
+          { status: 400 },
+        );
+      }
+    }
+
+    const category = await db.category.create({
+      data: { name: name.trim(), parentId: parentId || null },
+    });
+
     return NextResponse.json(category, { status: 201 });
   } catch (e) {
     if (e.message === "UNAUTHENTICATED") {
@@ -41,7 +57,7 @@ export async function POST(req) {
     }
     if (e.code === "P2002") {
       return NextResponse.json(
-        { error: "A category with that name already exists" },
+        { error: "A category with that name already exists under this parent" },
         { status: 409 },
       );
     }

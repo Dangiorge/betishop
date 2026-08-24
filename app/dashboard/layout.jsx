@@ -33,6 +33,14 @@ export default async function ShopLayout({ children }) {
             label: "Stock Count",
             icon: "stock-count",
           },
+          {
+            href: "/dashboard/suppliers",
+            label: "Suppliers",
+            icon: "suppliers",
+          },
+          { href: "/dashboard/grn", label: "GRN", icon: "grn" },
+          { href: "/dashboard/stock", label: "Stock", icon: "stock" },
+          { href: "/dashboard/stores", label: "Stores", icon: "stores" },
         ]
       : []),
   ];

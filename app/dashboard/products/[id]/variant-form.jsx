@@ -12,7 +12,6 @@ export default function VariantForm({ productId }) {
     sku: "",
     costPrice: "",
     sellPrice: "",
-    stockQty: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,21 +40,17 @@ export default function VariantForm({ productId }) {
       return;
     }
 
-    setForm({
-      color: "",
-      size: "",
-      sku: "",
-      costPrice: "",
-      sellPrice: "",
-      stockQty: "",
-    });
+    setForm({ color: "", size: "", sku: "", costPrice: "", sellPrice: "" });
     router.refresh();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <p className="text-sm font-medium text-slate-700">Add variant</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <p className="text-xs text-slate-400 -mt-2">
+        Stock starts at zero — use GRN afterward to receive stock into a store.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Input
           name="color"
           placeholder="Color (e.g. Gray)"
@@ -78,7 +73,7 @@ export default function VariantForm({ productId }) {
           name="costPrice"
           type="number"
           step="0.01"
-          placeholder="Cost price"
+          placeholder="Default cost"
           value={form.costPrice}
           onChange={handleChange}
           required
@@ -91,13 +86,6 @@ export default function VariantForm({ productId }) {
           value={form.sellPrice}
           onChange={handleChange}
           required
-        />
-        <Input
-          name="stockQty"
-          type="number"
-          placeholder="Initial stock"
-          value={form.stockQty}
-          onChange={handleChange}
         />
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}

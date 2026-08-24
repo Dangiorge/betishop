@@ -18,6 +18,10 @@ import {
   Users,
   CalendarCheck,
   ClipboardCheck,
+  Truck,
+  PackageCheck,
+  Boxes,
+  MapPin,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -31,6 +35,10 @@ const ICONS = {
   employees: Users,
   closing: CalendarCheck,
   "stock-count": ClipboardCheck,
+  suppliers: Truck,
+  grn: PackageCheck,
+  stock: Boxes,
+  stores: MapPin,
 };
 
 export default function Sidebar({

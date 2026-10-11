@@ -3,9 +3,11 @@ import SupplierForm from "./supplier-form";
 import SupplierRow from "./supplier-row";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
+import { redirect } from "next/navigation";
 
 export default async function SuppliersPage() {
   const { db, role } = await getTenantDb();
+  if (role !== "TENANT_ADMIN") redirect("/dashboard");
   const suppliers = await db.supplier.findMany({ orderBy: { name: "asc" } });
   const isAdmin = role === "TENANT_ADMIN";
 

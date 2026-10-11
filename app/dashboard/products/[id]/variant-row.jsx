@@ -1,6 +1,6 @@
 "use client";
 
-export default function VariantRow({ variant }) {
+export default function VariantRow({ variant, isAdmin }) {
   const totalStock =
     variant.storeStocks?.reduce((sum, s) => sum + s.qty, 0) ?? 0;
   const low = totalStock <= 3;
@@ -13,13 +13,13 @@ export default function VariantRow({ variant }) {
             "Default"}
         </p>
         <p className="text-xs text-slate-500 mt-0.5">
-          Cost ${Number(variant.costPrice).toFixed(2)} · Sell $
-          {Number(variant.sellPrice).toFixed(2)}
+          {isAdmin && <>Cost ETB {Number(variant.costPrice).toLocaleString()} · </>}
+          Sell ETB {Number(variant.sellPrice).toLocaleString()}
         </p>
       </div>
       <span
         className={`text-sm font-medium px-2.5 py-1 rounded-full ${low ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-700"}`}>
-        {totalStock} in stock (all stores)
+        {totalStock} in stock{isAdmin ? " (all stores)" : " at your store"}
       </span>
     </div>
   );

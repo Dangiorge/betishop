@@ -4,13 +4,16 @@ import { getTenantDb } from "@/lib/tenant-db";
 export async function GET(req, { params }) {
   try {
     const { id } = await params;
-    const { db } = await getTenantDb();
+    const { db, role } = await getTenantDb();
     const product = await db.product.findUnique({
       where: { id },
       include: { category: true, variants: { orderBy: { createdAt: "asc" } } },
     });
     if (!product)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (role === "SALES_PERSON" || role === "EMPLOYEE") {
+      product.variants = product.variants.map(({ costPrice, ...variant }) => variant);
+    }
     return NextResponse.json(product);
   } catch (e) {
     if (e.message === "UNAUTHENTICATED") {

@@ -3,7 +3,8 @@ import { getTenantDb } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
-    const { db } = await getTenantDb();
+    const { db, role } = await getTenantDb();
+    if (role !== "TENANT_ADMIN") return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     const grns = await db.gRN.findMany({
       include: {
         store: true,
@@ -32,7 +33,10 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const { db, session } = await getTenantDb();
+    const { db, session, role } = await getTenantDb();
+    if (role !== "TENANT_ADMIN") {
+      return NextResponse.json({ error: "Only the shop owner can receive inventory" }, { status: 403 });
+    }
     const { storeId, supplierId, referenceNo, note, items } = await req.json();
 
     if (!storeId || !Array.isArray(items) || items.length === 0) {
@@ -45,9 +49,11 @@ export async function POST(req) {
     for (const item of items) {
       if (
         !item.variantId ||
-        !item.qty ||
+        !Number.isInteger(Number(item.qty)) ||
         Number(item.qty) <= 0 ||
-        item.unitCost == null
+        item.unitCost == null ||
+        !Number.isFinite(Number(item.unitCost)) ||
+        Number(item.unitCost) < 0
       ) {
         return NextResponse.json(
           {
@@ -68,6 +74,10 @@ export async function POST(req) {
         { status: 403 },
       );
     }
+    const variantIds = [...new Set(items.map((item) => item.variantId))];
+    const validVariants = await db.variant.findMany({ where: { id: { in: variantIds } }, select: { id: true } });
+    if (validVariants.length !== variantIds.length) return NextResponse.json({ error: "One or more products were not found" }, { status: 400 });
+    if (supplierId && !(await db.supplier.findUnique({ where: { id: supplierId } }))) return NextResponse.json({ error: "Supplier not found" }, { status: 400 });
 
     const grn = await db.$transaction(async (tx) => {
       const created = await tx.gRN.create({

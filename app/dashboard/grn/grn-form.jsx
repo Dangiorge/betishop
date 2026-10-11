@@ -91,7 +91,7 @@ export default function GRNForm({ stores, suppliers, variants }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm font-medium text-slate-700">New GRN</p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Select
             value={storeId}
             onChange={(e) => setStoreId(e.target.value)}
@@ -115,7 +115,7 @@ export default function GRNForm({ stores, suppliers, variants }) {
           </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             placeholder="Reference no. (optional)"
             value={referenceNo}
@@ -133,7 +133,7 @@ export default function GRNForm({ stores, suppliers, variants }) {
           {items.map((item, i) => (
             <div
               key={i}
-              className="grid grid-cols-[1fr_80px_100px_auto] gap-2 items-center">
+              className="grid grid-cols-[minmax(0,1fr)_60px_80px_32px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_80px_100px_auto]">
               <Select
                 value={item.variantId}
                 onChange={(e) => updateItem(i, "variantId", e.target.value)}

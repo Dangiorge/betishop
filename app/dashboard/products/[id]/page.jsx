@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import VariantForm from "./variant-form";
 import VariantRow from "./variant-row";
 import Card from "@/components/ui/card";
+import { isSalesRole } from "@/lib/permissions";
 
 const GENDER_LABELS = {
   MEN: "Men",
@@ -13,7 +14,8 @@ const GENDER_LABELS = {
 
 export default async function ProductDetailPage({ params }) {
   const { id } = await params;
-  const { db, role } = await getTenantDb();
+  const { db, role, session } = await getTenantDb();
+  const salesperson = isSalesRole(role);
 
   const product = await db.product.findUnique({
     where: { id },
@@ -21,7 +23,7 @@ export default async function ProductDetailPage({ params }) {
       category: true,
       variants: {
         orderBy: { createdAt: "asc" },
-        include: { storeStocks: true },
+        include: { storeStocks: salesperson ? { where: { storeId: session.user.assignedStoreId ?? "" } } : true },
       },
     },
   });
@@ -29,6 +31,13 @@ export default async function ProductDetailPage({ params }) {
   if (!product) notFound();
 
   const isAdmin = role === "TENANT_ADMIN";
+  // Prisma Decimal instances cannot cross the Server/Client Component boundary.
+  // Keep prices numeric for display, and never expose cost prices to non-admins.
+  const visibleVariants = product.variants.map(({ costPrice, sellPrice, ...variant }) => ({
+    ...variant,
+    ...(isAdmin ? { costPrice: Number(costPrice) } : {}),
+    sellPrice: Number(sellPrice),
+  }));
 
   const details = [
     { label: "Category", value: product.category.name },
@@ -100,10 +109,10 @@ export default async function ProductDetailPage({ params }) {
           <h2 className="text-sm font-medium text-slate-700">Variants</h2>
         </div>
         <div className="divide-y divide-slate-100">
-          {product.variants.map((v) => (
+          {visibleVariants.map((v) => (
             <VariantRow key={v.id} variant={v} isAdmin={isAdmin} />
           ))}
-          {product.variants.length === 0 && (
+          {visibleVariants.length === 0 && (
             <p className="p-6 text-sm text-slate-400 text-center">
               No variants yet — add the first one below.
             </p>

@@ -3,9 +3,11 @@ import StoreForm from "./store-form";
 import StoreRow from "./store-row";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
+import { redirect } from "next/navigation";
 
 export default async function StoresPage() {
   const { db, role } = await getTenantDb();
+  if (role !== "TENANT_ADMIN") redirect("/dashboard");
   const stores = await db.store.findMany({ orderBy: { name: "asc" } });
   const isAdmin = role === "TENANT_ADMIN";
 

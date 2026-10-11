@@ -78,7 +78,7 @@ export default function ProductForm({ categories }) {
               required
             />
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Select
                 name="categoryId"
                 value={form.categoryId}
@@ -98,7 +98,7 @@ export default function ProductForm({ categories }) {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
                 name="brand"
                 placeholder="Brand (e.g. Adidas)"
@@ -114,7 +114,7 @@ export default function ProductForm({ categories }) {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
                 name="material"
                 placeholder="Material (e.g. Genuine leather)"

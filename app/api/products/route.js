@@ -3,9 +3,9 @@ import { getTenantDb } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
-    const { db } = await getTenantDb();
+    const { db, role, session } = await getTenantDb();
     const products = await db.product.findMany({
-      include: { category: true, variants: true },
+      include: { category: true, variants: { select: { id: true, sku: true, color: true, size: true, sellPrice: true, createdAt: true, storeStocks: { where: role === "SALES_PERSON" || role === "EMPLOYEE" ? { storeId: session.user.assignedStoreId ?? "" } : {}, select: { storeId: true, qty: true } } } } },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(products);

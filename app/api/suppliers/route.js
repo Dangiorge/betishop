@@ -3,7 +3,8 @@ import { getTenantDb } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
-    const { db } = await getTenantDb();
+    const { db, role } = await getTenantDb();
+    if (role !== "TENANT_ADMIN") return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     const suppliers = await db.supplier.findMany({ orderBy: { name: "asc" } });
     return NextResponse.json(suppliers);
   } catch (e) {

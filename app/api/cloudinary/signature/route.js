@@ -8,6 +8,9 @@ export async function POST() {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (session.user.role !== "TENANT_ADMIN") {
+    return NextResponse.json({ error: "Only the shop owner can upload product images" }, { status: 403 });
+  }
 
   const timestamp = Math.round(Date.now() / 1000);
   const folder = `betishop/${session.user.tenantId}`;

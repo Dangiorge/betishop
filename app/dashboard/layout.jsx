@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/sidebar";
+import { isSalesRole } from "@/lib/permissions";
 
 export default async function ShopLayout({ children }) {
   const session = await getServerSession(authOptions);
@@ -10,7 +11,15 @@ export default async function ShopLayout({ children }) {
 
   const isAdmin = session.user.role === "TENANT_ADMIN";
 
-  const navItems = [
+  const navItems = isSalesRole(session.user.role)
+    ? [
+        { href: "/dashboard", label: "Overview", icon: "dashboard" },
+        { href: "/dashboard/sales", label: "Sales", icon: "sales" },
+        { href: "/dashboard/products", label: "Products", icon: "products" },
+        { href: "/dashboard/stock", label: "Stock", icon: "stock" },
+        { href: "/dashboard/inventory", label: "New Inventory", icon: "grn" },
+      ]
+    : [
     { href: "/dashboard", label: "Overview", icon: "dashboard" },
     { href: "/dashboard/categories", label: "Categories", icon: "categories" },
     { href: "/dashboard/products", label: "Products", icon: "products" },
@@ -33,6 +42,9 @@ export default async function ShopLayout({ children }) {
             label: "Stock Count",
             icon: "stock-count",
           },
+          { href: "/dashboard/finance", label: "Bank Accounts", icon: "bank" },
+          { href: "/dashboard/guest-page", label: "Guest Catalog QR", icon: "qr" },
+          { href: "/dashboard/feedback", label: "Guest Feedback", icon: "feedback" },
           {
             href: "/dashboard/suppliers",
             label: "Suppliers",
@@ -43,7 +55,7 @@ export default async function ShopLayout({ children }) {
           { href: "/dashboard/stores", label: "Stores", icon: "stores" },
         ]
       : []),
-  ];
+      ];
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -51,7 +63,7 @@ export default async function ShopLayout({ children }) {
         navItems={navItems}
         title="BetiShop"
         userName={session.user.name}
-        userRole={isAdmin ? "Shop Admin" : "Employee"}
+        userRole={isAdmin ? "Shop Owner" : isSalesRole(session.user.role) ? "Sales Person" : "Employee"}
       />
       <main className="flex-1 min-w-0">
         <div className="p-4 md:p-8">{children}</div>

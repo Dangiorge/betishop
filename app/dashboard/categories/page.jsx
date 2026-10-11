@@ -3,9 +3,11 @@ import CategoryForm from "./category-form";
 import CategoryTree from "./category-tree";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
+import { redirect } from "next/navigation";
 
 export default async function CategoriesPage() {
   const { db, role } = await getTenantDb();
+  if (role !== "TENANT_ADMIN") redirect("/dashboard");
   const categories = await db.category.findMany({
     include: { _count: { select: { products: true, children: true } } },
     orderBy: { name: "asc" },

@@ -53,7 +53,7 @@ export default function SignupPage() {
               Request submitted
             </h1>
             <p className="text-sm text-slate-500">
-              We'll review your request and email you once your shop account is
+              We&apos;ll review your request and email you once your shop account is
               approved.
             </p>
           </div>

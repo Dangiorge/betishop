@@ -3,13 +3,15 @@ import Link from "next/link";
 import ProductForm from "./product-form";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
+import { isSalesRole } from "@/lib/permissions";
 
 export default async function ProductsPage() {
-  const { db, role } = await getTenantDb();
+  const { db, role, session } = await getTenantDb();
+  const salesperson = isSalesRole(role);
 
   const [products, categories] = await Promise.all([
     db.product.findMany({
-      include: { category: true, variants: { include: { storeStocks: true } } },
+      include: { category: true, variants: { include: { storeStocks: salesperson ? { where: { storeId: session.user.assignedStoreId ?? "" } } : true } } },
       orderBy: { createdAt: "desc" },
     }),
     db.category.findMany({ orderBy: { name: "asc" } }),
@@ -21,7 +23,7 @@ export default async function ProductsPage() {
     <div>
       <PageHeader
         title="Products"
-        subtitle="Your full catalog, grouped by variant"
+        subtitle={salesperson ? "Items available to sell from your assigned store" : "Your full catalog, grouped by variant"}
       />
 
       {isAdmin && (

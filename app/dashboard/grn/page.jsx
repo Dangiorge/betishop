@@ -2,9 +2,11 @@ import { getTenantDb } from "@/lib/tenant-db";
 import GRNForm from "./grn-form";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
+import { redirect } from "next/navigation";
 
 export default async function GRNPage() {
-  const { db } = await getTenantDb();
+  const { db, role } = await getTenantDb();
+  if (role !== "TENANT_ADMIN") redirect("/dashboard");
 
   const [grns, stores, suppliers, variants] = await Promise.all([
     db.gRN.findMany({
@@ -79,7 +81,7 @@ export default async function GRNPage() {
                     </p>
                   </div>
                   <span className="text-sm font-medium text-slate-700">
-                    ${total.toFixed(2)}
+                    ETB {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <ul className="mt-2 text-xs text-slate-500 space-y-0.5">
@@ -90,7 +92,7 @@ export default async function GRNPage() {
                         ? ` (${[i.variant.color, i.variant.size].filter(Boolean).join(" / ")})`
                         : ""}
                       {" — "}
-                      {i.qty} @ ${Number(i.unitCost).toFixed(2)}
+                      {i.qty} @ ETB {Number(i.unitCost).toLocaleString()}
                     </li>
                   ))}
                 </ul>

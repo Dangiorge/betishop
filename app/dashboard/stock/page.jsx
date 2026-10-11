@@ -2,9 +2,12 @@ import { getTenantDb } from "@/lib/tenant-db";
 import PageHeader from "@/components/ui/page-header";
 import Card from "@/components/ui/card";
 import Link from "next/link";
+import { isSalesRole } from "@/lib/permissions";
 
 export default async function StockPage() {
-  const { db } = await getTenantDb();
+  const { db, session, role } = await getTenantDb();
+  const salesperson = isSalesRole(role);
+  const assignedStoreId = session.user.assignedStoreId;
 
   const [variants, stores, storeStocks] = await Promise.all([
     db.variant.findMany({
@@ -13,8 +16,8 @@ export default async function StockPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
-    db.store.findMany({ orderBy: { name: "asc" } }),
-    db.storeStock.findMany(),
+    db.store.findMany({ where: salesperson ? { id: assignedStoreId ?? "" } : {}, orderBy: { name: "asc" } }),
+    db.storeStock.findMany({ where: salesperson ? { storeId: assignedStoreId ?? "" } : {} }),
   ]);
 
   const stockMap = new Map(); // `${variantId}:${storeId}` -> qty
@@ -26,7 +29,7 @@ export default async function StockPage() {
     <div>
       <PageHeader
         title="Stock Overview"
-        subtitle="Live stock levels for every item, by store"
+        subtitle={salesperson ? "Live stock levels at your assigned store" : "Live stock levels for every item, by store"}
       />
 
       {stores.length === 0 ? (

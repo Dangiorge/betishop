@@ -3,18 +3,20 @@ import { getTenantDb } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
-    const { db } = await getTenantDb();
+    const { db, session, role } = await getTenantDb();
+    const salesperson = role === "SALES_PERSON" || role === "EMPLOYEE";
 
     const [variants, stores, storeStocks] = await Promise.all([
       db.variant.findMany({
         include: { product: { select: { name: true, imageUrl: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      db.store.findMany({ orderBy: { name: "asc" } }),
-      db.storeStock.findMany(),
+      db.store.findMany({ where: salesperson ? { id: session.user.assignedStoreId ?? "" } : {}, orderBy: { name: "asc" } }),
+      db.storeStock.findMany({ where: salesperson ? { storeId: session.user.assignedStoreId ?? "" } : {} }),
     ]);
 
-    return NextResponse.json({ variants, stores, storeStocks });
+    const safeVariants = salesperson ? variants.map(({ costPrice, ...variant }) => variant) : variants;
+    return NextResponse.json({ variants: safeVariants, stores, storeStocks });
   } catch (e) {
     if (e.message === "UNAUTHENTICATED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

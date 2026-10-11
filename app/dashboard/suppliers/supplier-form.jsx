@@ -70,7 +70,7 @@ export default function SupplierForm() {
           required
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             name="contactPerson"
             placeholder="Contact person"
@@ -85,7 +85,7 @@ export default function SupplierForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             name="email"
             type="email"

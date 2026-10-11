@@ -4,7 +4,8 @@ import { getTenantDb } from "@/lib/tenant-db";
 export async function GET(req, { params }) {
   try {
     const { id } = await params;
-    const { db } = await getTenantDb();
+    const { db, role } = await getTenantDb();
+    if (role !== "TENANT_ADMIN") return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     const supplier = await db.supplier.findUnique({ where: { id } });
     if (!supplier)
       return NextResponse.json({ error: "Not found" }, { status: 404 });

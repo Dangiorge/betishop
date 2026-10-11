@@ -22,6 +22,9 @@ import {
   PackageCheck,
   Boxes,
   MapPin,
+  Landmark,
+  QrCode,
+  MessageSquareText,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -39,6 +42,9 @@ const ICONS = {
   grn: PackageCheck,
   stock: Boxes,
   stores: MapPin,
+  bank: Landmark,
+  qr: QrCode,
+  feedback: MessageSquareText,
 };
 
 export default function Sidebar({

@@ -58,7 +58,7 @@ export default async function ShopLayout({ children }) {
       ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen flex-col bg-slate-50 md:flex-row">
       <Sidebar
         navItems={navItems}
         title="BetiShop"
@@ -66,7 +66,7 @@ export default async function ShopLayout({ children }) {
         userRole={isAdmin ? "Shop Owner" : isSalesRole(session.user.role) ? "Sales Person" : "Employee"}
       />
       <main className="flex-1 min-w-0">
-        <div className="p-4 md:p-8">{children}</div>
+        <div className="p-3 sm:p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

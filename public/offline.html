@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#172554" />
+    <title>Offline — BetiShop</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f8fafc; color: #0f172a; font: 16px/1.5 system-ui, sans-serif; }
+      main { width: min(100%, 420px); padding: 32px; border: 1px solid #e2e8f0; border-radius: 20px; background: white; text-align: center; box-shadow: 0 12px 32px #0f172a0d; }
+      .mark { display: grid; place-items: center; width: 64px; height: 64px; margin: auto; border-radius: 18px; background: #172554; color: white; font-size: 32px; font-weight: 800; }
+      h1 { margin: 20px 0 8px; font-size: 24px; }
+      p { margin: 0; color: #64748b; }
+      button { margin-top: 24px; padding: 12px 20px; border: 0; border-radius: 10px; background: #172554; color: white; font: inherit; font-weight: 600; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">B</div>
+      <h1>You’re offline</h1>
+      <p>Reconnect to the internet, then try opening BetiShop again. Your shop data stays private and is not stored on this device.</p>
+      <button onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

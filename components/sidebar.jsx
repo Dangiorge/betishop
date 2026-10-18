@@ -61,8 +61,11 @@ export default function Sidebar({
     <>
       <div className="md:hidden flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30">
         <button
+          type="button"
+          aria-label="Open navigation menu"
+          aria-expanded={mobileOpen}
           onClick={() => setMobileOpen(true)}
-          className="text-slate-600 hover:text-slate-900">
+          className="grid min-h-11 min-w-11 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900">
           <Menu size={22} />
         </button>
         <span className="font-semibold text-slate-800">{title}</span>
@@ -71,6 +74,7 @@ export default function Sidebar({
 
       {mobileOpen && (
         <div
+          aria-hidden="true"
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
@@ -78,7 +82,8 @@ export default function Sidebar({
 
       <aside
         className={`
-          fixed md:static top-0 left-0 h-full z-50 w-64
+          fixed md:static top-0 left-0 h-[100dvh] md:h-screen z-50 w-64 max-w-[85vw]
+          pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]
           bg-slate-900 text-slate-100 flex flex-col shrink-0
           transition-all duration-200
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
@@ -91,8 +96,10 @@ export default function Sidebar({
             </span>
           )}
           <button
+            type="button"
+            aria-label="Close navigation menu"
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-slate-400 hover:text-white">
+            className="md:hidden grid min-h-11 min-w-11 place-items-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
             <X size={20} />
           </button>
           <button

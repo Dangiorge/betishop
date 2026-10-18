@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen flex-col bg-slate-50 md:flex-row">
       <Sidebar
         navItems={navItems}
         title="BetiShop Admin"
@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }) {
         userRole="Super Admin"
       />
       <main className="flex-1 min-w-0">
-        <div className="p-4 md:p-8">{children}</div>
+        <div className="p-3 sm:p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

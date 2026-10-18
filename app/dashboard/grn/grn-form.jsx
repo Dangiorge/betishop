@@ -133,8 +133,9 @@ export default function GRNForm({ stores, suppliers, variants }) {
           {items.map((item, i) => (
             <div
               key={i}
-              className="grid grid-cols-[minmax(0,1fr)_60px_80px_32px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_80px_100px_auto]">
+              className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_80px_100px_auto]">
               <Select
+                className="col-span-2 min-w-0 sm:col-span-1"
                 value={item.variantId}
                 onChange={(e) => updateItem(i, "variantId", e.target.value)}
                 required>
@@ -165,7 +166,7 @@ export default function GRNForm({ stores, suppliers, variants }) {
                 <button
                   type="button"
                   onClick={() => removeItem(i)}
-                  className="p-1.5 text-slate-400 hover:text-red-600">
+                  className="justify-self-end rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 sm:justify-self-auto">
                   <X size={16} />
                 </button>
               )}

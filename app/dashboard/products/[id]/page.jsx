@@ -106,11 +106,11 @@ export default async function ProductDetailPage({ params }) {
 
       <Card>
         <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 rounded-t-xl">
-          <h2 className="text-sm font-medium text-slate-700">Variants</h2>
+          <h2 className="text-sm font-medium text-slate-700">{product.type === "BAG" ? "Item price and stock" : "Variants"}</h2>
         </div>
         <div className="divide-y divide-slate-100">
           {visibleVariants.map((v) => (
-            <VariantRow key={v.id} variant={v} isAdmin={isAdmin} />
+            <VariantRow key={v.id} variant={v} isAdmin={isAdmin} isSimpleItem={product.type === "BAG"} />
           ))}
           {visibleVariants.length === 0 && (
             <p className="p-6 text-sm text-slate-400 text-center">
@@ -118,9 +118,9 @@ export default async function ProductDetailPage({ params }) {
             </p>
           )}
         </div>
-        {isAdmin && (
+        {isAdmin && (product.type !== "BAG" || visibleVariants.length === 0) && (
           <div className="p-5 border-t border-slate-100">
-            <VariantForm productId={product.id} />
+            <VariantForm productId={product.id} isSimpleItem={product.type === "BAG"} />
           </div>
         )}
       </Card>

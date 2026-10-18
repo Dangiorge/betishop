@@ -56,7 +56,7 @@ export default async function ProductsPage() {
                   </p>
                   <p className="text-xs text-slate-500">{p.category.name}</p>
                   <p className="text-xs text-slate-400 mt-1">
-                    {p.variants.length} variant{p.variants.length !== 1 && "s"}{" "}
+                    {p.type === "BAG" ? "Single item" : `${p.variants.length} variant${p.variants.length !== 1 ? "s" : ""}`}{" "}
                     · {totalStock} in stock
                   </p>
                 </div>

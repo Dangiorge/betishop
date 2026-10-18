@@ -1,6 +1,6 @@
 "use client";
 
-export default function VariantRow({ variant, isAdmin }) {
+export default function VariantRow({ variant, isAdmin, isSimpleItem = false }) {
   const totalStock =
     variant.storeStocks?.reduce((sum, s) => sum + s.qty, 0) ?? 0;
   const low = totalStock <= 3;
@@ -10,7 +10,7 @@ export default function VariantRow({ variant, isAdmin }) {
       <div>
         <p className="text-sm font-medium text-slate-900">
           {[variant.color, variant.size].filter(Boolean).join(" · ") ||
-            "Default"}
+            (isSimpleItem ? "Single item · no options" : "Default")}
         </p>
         <p className="text-xs text-slate-500 mt-0.5">
           {isAdmin && <>Cost ETB {Number(variant.costPrice).toLocaleString()} · </>}

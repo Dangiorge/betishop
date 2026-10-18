@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
 
-export default function VariantForm({ productId }) {
+export default function VariantForm({ productId, isSimpleItem = false }) {
   const [form, setForm] = useState({
     color: "",
     size: "",
@@ -46,11 +46,12 @@ export default function VariantForm({ productId }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <p className="text-sm font-medium text-slate-700">Add variant</p>
-      <p className="text-xs text-slate-400 -mt-2">
-        Stock starts at zero — use GRN afterward to receive stock into a store.
+      <p className="text-sm font-medium text-slate-700">{isSimpleItem ? "Set up this bag" : "Add variant"}</p>
+      <p className="text-xs text-slate-500 -mt-2">
+        {isSimpleItem ? "Set its price once, then receive quantities through New Inventory." : "Stock starts at zero — use GRN afterward to receive stock into a store."}
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className={`grid grid-cols-1 gap-3 ${isSimpleItem ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
+        {!isSimpleItem && <>
         <Input
           name="color"
           placeholder="Color (e.g. Gray)"
@@ -69,6 +70,7 @@ export default function VariantForm({ productId }) {
           value={form.sku}
           onChange={handleChange}
         />
+        </>}
         <Input
           name="costPrice"
           type="number"
@@ -90,7 +92,7 @@ export default function VariantForm({ productId }) {
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <Button type="submit" disabled={loading}>
-        {loading ? "Adding..." : "Add variant"}
+        {loading ? "Saving..." : isSimpleItem ? "Save item price" : "Add variant"}
       </Button>
     </form>
   );

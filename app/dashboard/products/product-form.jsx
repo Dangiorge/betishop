@@ -20,6 +20,8 @@ const EMPTY_FORM = {
   countryOfOrigin: "",
   tags: "",
   imageUrl: "",
+  costPrice: "",
+  sellPrice: "",
 };
 
 export default function ProductForm({ categories }) {
@@ -38,23 +40,29 @@ export default function ProductForm({ categories }) {
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    setLoading(false);
-
-    if (!res.ok) {
+    try {
+      const { costPrice, sellPrice, ...product } = form;
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          ...(form.type === "BAG" ? { defaultVariant: { costPrice, sellPrice } } : {}),
+        }),
+      });
       const data = await res.json();
-      setError(data.error ?? "Something went wrong");
-      return;
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong");
+        return;
+      }
+      setForm(EMPTY_FORM);
+      setOpen(false);
+      router.refresh();
+    } catch {
+      setError("Could not save the product. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setForm(EMPTY_FORM);
-    setOpen(false);
-    router.refresh();
   }
 
   if (!open) {
@@ -64,12 +72,12 @@ export default function ProductForm({ categories }) {
   return (
     <Card className="p-5">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-start gap-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row">
           <ImageUploader
             value={form.imageUrl}
             onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
           />
-          <div className="flex-1 space-y-3">
+          <div className="w-full min-w-0 flex-1 space-y-3">
             <Input
               name="name"
               placeholder="Product name (e.g. Adidas Runner)"
@@ -97,6 +105,17 @@ export default function ProductForm({ categories }) {
                 <option value="OTHER">Other</option>
               </Select>
             </div>
+
+            {form.type === "BAG" && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-semibold text-slate-800">Single item</p>
+                <p className="mt-1 text-xs text-slate-600">Bags are added without size or color options. Receive their quantity later from New Inventory.</p>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input name="costPrice" type="number" min="0" step="0.01" placeholder="Cost price (ETB)" value={form.costPrice} onChange={handleChange} required />
+                  <Input name="sellPrice" type="number" min="0.01" step="0.01" placeholder="Selling price (ETB)" value={form.sellPrice} onChange={handleChange} required />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input

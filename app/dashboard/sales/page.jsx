@@ -8,7 +8,7 @@ export default async function SalesPage() {
   const salesperson = isSalesRole(role);
   const [stores, variants, accounts, batches] = await Promise.all([
     db.store.findMany({ where: { allowSales: true, ...(salesperson ? { id: session.user.assignedStoreId ?? "" } : {}) }, orderBy: { name: "asc" } }),
-    db.variant.findMany({ include: { product: { select: { name: true } }, storeStocks: salesperson ? { where: { storeId: session.user.assignedStoreId ?? "" } } : true }, orderBy: { createdAt: "desc" } }),
+    db.variant.findMany({ include: { product: { select: { name: true, imageUrl: true, category: { select: { name: true } } } }, storeStocks: salesperson ? { where: { storeId: session.user.assignedStoreId ?? "" } } : true }, orderBy: { createdAt: "desc" } }),
     db.bankAccount.findMany({ where: { active: true }, select: { id: true, name: true, bankName: true }, orderBy: { name: "asc" } }),
     db.saleBatch.findMany({
       where: salesperson ? { employeeId: session.user.id } : {},
@@ -17,7 +17,7 @@ export default async function SalesPage() {
     }),
   ]);
   const payload = variants.map((v) => ({
-    id: v.id, name: v.product.name, color: v.color, size: v.size,
+    id: v.id, name: v.product.name, imageUrl: v.product.imageUrl, category: v.product.category.name, color: v.color, size: v.size,
     price: Number(v.sellPrice), stockByStore: Object.fromEntries(v.storeStocks.map((s) => [s.storeId, s.qty])),
   }));
   return <div>

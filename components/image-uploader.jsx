@@ -11,6 +11,17 @@ export default function ImageUploader({ value, onChange }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      setError("Choose an image file.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Choose an image smaller than 10 MB.");
+      e.target.value = "";
+      return;
+    }
+
     setError("");
     setUploading(true);
 
@@ -18,9 +29,11 @@ export default function ImageUploader({ value, onChange }) {
       const sigRes = await fetch("/api/cloudinary/signature", {
         method: "POST",
       });
-      if (!sigRes.ok) throw new Error("Could not get upload signature");
-      const { timestamp, signature, folder, apiKey, cloudName } =
-        await sigRes.json();
+      const signatureData = await sigRes.json();
+      if (!sigRes.ok) {
+        throw new Error(signatureData.error ?? "Could not prepare image upload.");
+      }
+      const { timestamp, signature, folder, apiKey, cloudName } = signatureData;
 
       const formData = new FormData();
       formData.append("file", file);
@@ -40,9 +53,10 @@ export default function ImageUploader({ value, onChange }) {
 
       onChange(data.secure_url);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Image upload failed. Check your connection and try again.");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   }
 
@@ -57,6 +71,7 @@ export default function ImageUploader({ value, onChange }) {
           />
           <button
             type="button"
+            aria-label="Remove product image"
             onClick={() => onChange("")}
             className="absolute -top-2 -right-2 bg-white border border-slate-200 rounded-full p-1 shadow-sm hover:bg-slate-50">
             <X size={14} />
@@ -71,6 +86,7 @@ export default function ImageUploader({ value, onChange }) {
           <input
             type="file"
             accept="image/*"
+            aria-label="Choose a product image"
             onChange={handleFile}
             disabled={uploading}
             className="hidden"

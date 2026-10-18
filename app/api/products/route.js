@@ -23,7 +23,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const { db, role } = await getTenantDb();
+    const { db, role, tenantId } = await getTenantDb();
     if (role !== "TENANT_ADMIN") {
       return NextResponse.json(
         { error: "Only the shop admin can add products" },
@@ -43,11 +43,24 @@ export async function POST(req) {
       countryOfOrigin,
       tags,
       imageUrl,
+      defaultVariant,
     } = body;
 
     if (!name?.trim() || !categoryId || !type) {
       return NextResponse.json(
         { error: "Name, category, and type are required" },
+        { status: 400 },
+      );
+    }
+
+    if (type === "BAG" && (
+      !Number.isFinite(Number(defaultVariant?.costPrice)) ||
+      Number(defaultVariant?.costPrice) < 0 ||
+      !Number.isFinite(Number(defaultVariant?.sellPrice)) ||
+      Number(defaultVariant?.sellPrice) <= 0
+    )) {
+      return NextResponse.json(
+        { error: "Bags need a cost price and a selling price greater than zero." },
         { status: 400 },
       );
     }
@@ -81,6 +94,20 @@ export async function POST(req) {
                 .filter(Boolean)
             : [],
         imageUrl: imageUrl || null,
+        ...(type === "BAG"
+          ? {
+              variants: {
+                create: {
+                  tenantId,
+                  color: null,
+                  size: null,
+                  sku: null,
+                  costPrice: Number(defaultVariant.costPrice),
+                  sellPrice: Number(defaultVariant.sellPrice),
+                },
+              },
+            }
+          : {}),
       },
     });
 
